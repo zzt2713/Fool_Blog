@@ -366,6 +366,8 @@ html.dark .data-table tr:hover td { background: rgba(96,165,250,0.04); }
   font-size: 13px;
 }
 .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+.cover-actions { display: flex; gap: 8px; }
+.cover-actions .btn { flex: 1; }
 
 @media (max-width: 1000px) { .form-grid { grid-template-columns: 1fr; } }
 

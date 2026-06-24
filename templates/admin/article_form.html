@@ -52,8 +52,18 @@
         {{ if .Article.Cover }}<img src="{{ .Article.Cover }}" id="cover-img">
         {{ else }}<span>暂无封面</span>{{ end }}
       </div>
-      <button type="button" class="btn block" id="btn-upload-cover">上传封面</button>
+      <div class="cover-actions">
+        <button type="button" class="btn block" id="btn-upload-cover">上传封面</button>
+        <button type="button" class="btn block ghost" id="btn-url-cover">URL 设置</button>
+      </div>
       <input type="file" id="cover-upload" accept="image/*" style="display:none">
+      <div id="cover-url-form" style="display:none;margin-top:8px">
+        <input type="url" id="cover-url-input" placeholder="输入图片 URL" style="width:100%;margin-bottom:6px">
+        <div style="display:flex;gap:6px">
+          <button type="button" class="btn small primary" id="btn-url-confirm">确定</button>
+          <button type="button" class="btn small ghost" id="btn-url-cancel">取消</button>
+        </div>
+      </div>
       <input type="hidden" name="cover" id="cover-url" value="{{ .Article.Cover }}">
     </div>
 
@@ -91,6 +101,35 @@ document.getElementById('cover-upload').addEventListener('change', e => {
       document.getElementById('cover-preview').innerHTML = '<img src="' + data.data.url + '">';
     } else showToast(data.msg || '上传失败', 'error');
   });
+});
+
+// URL 设置封面
+var urlForm = document.getElementById('cover-url-form');
+var urlInput = document.getElementById('cover-url-input');
+
+document.getElementById('btn-url-cover').addEventListener('click', function() {
+  urlForm.style.display = urlForm.style.display === 'none' ? 'block' : 'none';
+  if (urlForm.style.display === 'block') {
+    urlInput.value = document.getElementById('cover-url').value || '';
+    urlInput.focus();
+  }
+});
+
+document.getElementById('btn-url-cancel').addEventListener('click', function() {
+  urlForm.style.display = 'none';
+});
+
+document.getElementById('btn-url-confirm').addEventListener('click', function() {
+  var url = urlInput.value.trim();
+  if (!url) { showToast('请输入图片 URL', 'warning'); return; }
+  document.getElementById('cover-url').value = url;
+  document.getElementById('cover-preview').innerHTML = '<img src="' + url + '">';
+  urlForm.style.display = 'none';
+  showToast('封面已设置', 'success');
+});
+
+urlInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-url-confirm').click(); }
 });
 
 // 插入图片
