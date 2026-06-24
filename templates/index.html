@@ -62,14 +62,10 @@
     <h3>公告</h3>
     <p style="color:var(--text-secondary);font-size:14px;line-height:1.8;white-space:pre-wrap;margin:0">{{ .Site.Announcement }}</p>
     {{ if .AnnouncementArticle }}
-    <ul class="article-list" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-      <li class="article-item" onclick="location.href='/article/{{ if .AnnouncementArticle.Slug }}{{ .AnnouncementArticle.Slug }}{{ else }}{{ .AnnouncementArticle.ID }}{{ end }}'" style="padding:8px 0">
-        <a class="title" href="/article/{{ if .AnnouncementArticle.Slug }}{{ .AnnouncementArticle.Slug }}{{ else }}{{ .AnnouncementArticle.ID }}{{ end }}" style="font-size:14px">{{ .AnnouncementArticle.Title }}</a>
-        <div class="meta" style="font-size:12px;margin-top:4px">
-          {{ formatTime .AnnouncementArticle.CreatedAt }} <span class="dot">·</span> 浏览 {{ .AnnouncementArticle.ViewCount }}
-        </div>
-      </li>
-    </ul>
+    <a href="/article/{{ if .AnnouncementArticle.Slug }}{{ .AnnouncementArticle.Slug }}{{ else }}{{ .AnnouncementArticle.ID }}{{ end }}" class="announcement-article">
+      <span class="announcement-article-title">{{ .AnnouncementArticle.Title }}</span>
+      <span class="announcement-article-meta">{{ formatTime .AnnouncementArticle.CreatedAt }} · {{ .AnnouncementArticle.ViewCount }} 次阅读</span>
+    </a>
     {{ end }}
   </div>
   {{ end }}
