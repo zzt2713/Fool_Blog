@@ -94,6 +94,10 @@ html.dark #like-btn:disabled{background:#dc2626}
 html.dark .form .primary:disabled,html.dark button.primary:disabled{background:#4b5563}
 </style>
 <script>
+var WALLPAPER_CONFIG = {
+  enabled: {{ if .Wallpaper }}true{{ else }}false{{ end }},
+  api: "{{ .Wallpaper }}"
+};
 (function(){
   var d=localStorage.getItem('darkMode');
   var dark=d==='true'||(!d&&matchMedia('(prefers-color-scheme:dark)').matches);

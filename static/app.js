@@ -104,9 +104,13 @@ document.addEventListener('DOMContentLoaded', function() {
     icon.className = document.documentElement.classList.contains('dark') ? 'fa fa-sun-o' : 'fa fa-moon-o';
   }
 
+  // 壁纸功能
+  var wpApi = (typeof WALLPAPER_CONFIG !== 'undefined' && WALLPAPER_CONFIG.api) ? WALLPAPER_CONFIG.api : '';
+  var wpEnabled = (typeof WALLPAPER_CONFIG !== 'undefined') ? WALLPAPER_CONFIG.enabled : false;
+
   // 首次访问自动加载随机壁纸
-  if (!localStorage.getItem('wallpaper')) {
-    fetch('https://www.loliapi.com/acg/')
+  if (wpEnabled && wpApi && !localStorage.getItem('wallpaper')) {
+    fetch(wpApi)
       .then(function(r) { var u = r.url; return r.blob().then(function(){ return u; }); })
       .then(function(url) { localStorage.setItem('wallpaper', url); applyWallpaper(url); })
       .catch(function(){});
@@ -115,22 +119,26 @@ document.addEventListener('DOMContentLoaded', function() {
   // 换壁纸
   var wpBtn = document.getElementById('wpRefresh');
   if (wpBtn) {
-    wpBtn.addEventListener('click', function() {
-      wpBtn.querySelector('i').className = 'fa fa-spinner fa-spin';
-      fetch('https://www.loliapi.com/acg/')
-        .then(function(r) {
-          var u = r.url;
-          return r.blob().then(function() { return u; });
-        })
-        .then(function(url) {
-          localStorage.setItem('wallpaper', url);
-          applyWallpaper(url);
-          wpBtn.querySelector('i').className = 'fa fa-picture-o';
-        })
-        .catch(function() {
-          wpBtn.querySelector('i').className = 'fa fa-picture-o';
-        });
-    });
+    if (!wpEnabled || !wpApi) {
+      wpBtn.style.display = 'none';
+    } else {
+      wpBtn.addEventListener('click', function() {
+        wpBtn.querySelector('i').className = 'fa fa-spinner fa-spin';
+        fetch(wpApi)
+          .then(function(r) {
+            var u = r.url;
+            return r.blob().then(function() { return u; });
+          })
+          .then(function(url) {
+            localStorage.setItem('wallpaper', url);
+            applyWallpaper(url);
+            wpBtn.querySelector('i').className = 'fa fa-picture-o';
+          })
+          .catch(function() {
+            wpBtn.querySelector('i').className = 'fa fa-picture-o';
+          });
+      });
+    }
   }
 
   // 移动端菜单
