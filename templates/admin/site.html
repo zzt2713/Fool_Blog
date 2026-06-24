@@ -27,7 +27,7 @@
     <select name="announcement_article_id">
       <option value="">不关联文章</option>
       {{ range .Articles }}
-      <option value="{{ .ID }}" {{ if $.Setting.AnnouncementArticleID }}{{ if eq .ID $.Setting.AnnouncementArticleID.ID }}selected{{ end }}{{ end }}>{{ .Title }}</option>
+      <option value="{{ .ID }}" {{ if and $.SelectedArticleID (eq .ID $.SelectedArticleID) }}selected{{ end }}>{{ .Title }}</option>
       {{ end }}
     </select>
     <span style="font-size:12px;color:var(--text-secondary);margin-top:4px">选择一篇文章，在首页公告区域显示链接</span>

@@ -215,11 +215,16 @@ func (h *Handler) AdminSite() gin.HandlerFunc {
 		site := h.loadSite()
 		var articles []model.Article
 		h.DB.Where("status = ?", model.ArticleStatusPublished).Order("title").Select("id", "title").Find(&articles)
+		var selectedArticleID uint
+		if site.AnnouncementArticleID != nil {
+			selectedArticleID = *site.AnnouncementArticleID
+		}
 		c.HTML(http.StatusOK, "admin_site", h.adminView(c, gin.H{
-			"Title":    "站点设置",
-			"Setting":  site,
-			"Articles": articles,
-			"Saved":    c.Query("ok") == "1",
+			"Title":             "站点设置",
+			"Setting":           site,
+			"Articles":          articles,
+			"SelectedArticleID": selectedArticleID,
+			"Saved":             c.Query("ok") == "1",
 		}))
 	}
 }
