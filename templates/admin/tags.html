@@ -1,0 +1,38 @@
+{{ define "admin_tags" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+<section class="panel">
+  <h4>新增标签</h4>
+  <form method="post" action="/admin/tags" class="inline-form" style="gap:10px" novalidate onsubmit="if(!this.name.value.trim()){showToast('请输入标签名','warning');this.name.focus();return false;}">
+    <input name="name" placeholder="标签名" required>
+    <input name="slug" placeholder="slug（可选）">
+    <button class="btn primary">添加</button>
+  </form>
+</section>
+
+<table class="data-table">
+  <thead><tr><th>ID</th><th>名称</th><th>Slug</th><th>创建时间</th><th>操作</th></tr></thead>
+  <tbody>
+  {{ range .Tags }}
+    <tr>
+      <td class="muted">#{{ .ID }}</td>
+      <td>
+        <form method="post" action="/admin/tags/{{ .ID }}" class="inline-form">
+          <input name="name" value="{{ .Name }}" required>
+          <input name="slug" value="{{ .Slug }}" placeholder="slug">
+          <button class="link-btn">保存</button>
+        </form>
+      </td>
+      <td class="muted">{{ .Slug }}</td>
+      <td class="muted">{{ formatTime .CreatedAt }}</td>
+      <td>
+        <button class="link-btn danger" onclick="deleteItem('/admin/tags/{{ .ID }}/delete', this, '确认删除标签？')">删除</button>
+      </td>
+    </tr>
+  {{ else }}<tr><td colspan="5" class="muted" style="text-align:center;padding:32px">暂无标签</td></tr>{{ end }}
+  </tbody>
+</table>
+
+{{ template "admin_shell_close" . }}
+{{ end }}

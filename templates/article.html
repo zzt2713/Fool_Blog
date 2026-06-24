@@ -1,0 +1,190 @@
+{{ define "article" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<div class="article-layout">
+  {{ if .TOC }}
+  <nav class="article-toc" id="article-toc">
+    <div class="toc-title">目录</div>
+    <ol>
+    {{ range .TOC }}
+      <li class="toc-l{{ .Level }}"><a href="#{{ .ID }}">{{ .Title }}</a></li>
+    {{ end }}
+    </ol>
+  </nav>
+  {{ end }}
+
+  <div class="article-main">
+    <div class="ai-review-card" id="ai-review" data-article-id="{{ .Article.ID }}" data-ai-review="{{ .Article.AIReview }}">
+      <div class="ai-review-header">
+        <i class="fa fa-magic"></i>
+        <span>AI 点评</span>
+      </div>
+      <div class="ai-review-body" id="ai-review-body">
+        <div class="ai-review-content markdown-body" id="ai-review-content">
+          {{ if .AIReviewHTML }}{{ .AIReviewHTML }}<span class="ai-cursor">|</span>{{ else }}<span class="ai-loading">正在生成 AI 点评…</span>{{ end }}
+        </div>
+      </div>
+    </div>
+
+    <article class="card article-detail">
+      {{ if .Article.Cover }}<img class="article-cover" src="{{ .Article.Cover }}" alt="cover">{{ end }}
+      <h1>{{ .Article.Title }}</h1>
+      <div class="meta">
+        {{ if .Article.Author }}
+        <span class="article-author">
+          <span class="article-author-avatar">
+            {{ if .Article.Author.Avatar }}<img src="{{ .Article.Author.Avatar }}" alt="">
+            {{ else }}{{ firstChar .Article.Author.Nickname }}{{ end }}
+          </span>
+          <span>{{ .Article.Author.Nickname }}</span>
+        </span><span class="dot">·</span>
+        {{ end }}
+        <span>{{ formatTime .Article.CreatedAt }}</span><span class="dot">·</span>
+        <span>浏览 {{ .Article.ViewCount }}</span><span class="dot">·</span>
+        <span>点赞 <span id="like-count">{{ .Article.LikeCount }}</span></span><span class="dot">·</span>
+        <span>评论 {{ .Article.CommentCount }}</span>
+        {{ range .Article.Tags }}<a class="tag" href="/tag/{{ .ID }}">{{ .Name }}</a>{{ end }}
+      </div>
+
+      <div class="markdown-body">
+        {{ safehtml .Article.ContentHTML }}
+      </div>
+
+      <div class="actions">
+        <button id="like-btn" data-url="/article/{{ .Article.ID }}/like" {{ if .Liked }}disabled{{ end }}>
+          {{ if .Liked }}已赞 {{ else }}赞 {{ end }}<span id="like-count">{{ .Article.LikeCount }}</span>
+        </button>
+      </div>
+    </article>
+
+    <section class="card" id="comments">
+      <h2>评论（{{ len .Comments }}）</h2>
+      {{ if .CurrentUser }}
+      <form action="/article/{{ .Article.ID }}/comment" method="post" class="comment-form">
+        <textarea name="content" required placeholder="说点什么吧…（Enter 发送，Shift+Enter 换行）" id="comment-input"></textarea>
+        <button type="submit">发表评论</button>
+      </form>
+      {{ else }}
+      <p class="muted"><a href="/login?next=/article/{{ .Article.ID }}">登录</a> 后才能评论。</p>
+      {{ end }}
+      <ul class="comment-list">
+      {{ range .Comments }}
+        <li class="comment-item">
+          <div class="comment-avatar">
+            {{ if and .User .User.Avatar }}<img src="{{ .User.Avatar }}" alt="">
+            {{ else if .User }}{{ firstChar .User.Nickname }}{{ end }}
+          </div>
+          <div class="comment-content">
+            <div class="comment-head">
+              <strong>{{ if .User }}{{ .User.Nickname }}{{ end }}</strong>
+              {{ if and .User .User.IsAdmin }}<span class="comment-badge comment-badge-admin">网站管理员</span>{{ else }}<span class="comment-badge comment-badge-user">普通用户</span>{{ end }}
+              <span class="muted">{{ formatTime .CreatedAt }}</span>
+            </div>
+            <div class="comment-body">{{ .Content }}</div>
+          </div>
+        </li>
+      {{ end }}
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  var toc=document.getElementById('article-toc');
+  if(!toc)return;
+  var links=toc.querySelectorAll('a');
+  var ids=[];
+  links.forEach(function(a){ ids.push(a.getAttribute('href').slice(1)); });
+  function onScroll(){
+    var scrollY=window.scrollY+120;
+    var cur=ids[0];
+    for(var i=0;i<ids.length;i++){
+      var el=document.getElementById(ids[i]);
+      if(el&&el.offsetTop<=scrollY) cur=ids[i];
+    }
+    links.forEach(function(a){
+      a.parentElement.classList.toggle('active',a.getAttribute('href')==='#'+cur);
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+
+// 评论区：Enter 发送，Shift+Enter 换行
+(function(){
+  var ta=document.getElementById('comment-input');
+  if(!ta)return;
+  ta.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){
+      e.preventDefault();
+      var form=ta.closest('form');
+      if(form&&ta.value.trim())form.submit();
+    }
+  });
+})();
+
+// AI 点评：打字机效果 + 无点评时异步生成
+(function(){
+  var card=document.getElementById('ai-review');
+  if(!card)return;
+  var saved=card.getAttribute('data-ai-review');
+  var id=card.getAttribute('data-article-id');
+  var content=document.getElementById('ai-review-content');
+  if(saved){
+    // 有保存的点评，打字机显示纯文本，完成后替换为渲染HTML
+    typewrite(content, saved);
+  }else{
+    // 无点评，请求生成
+    generateAIReview(id, content);
+  }
+})();
+
+function typewrite(el, rawText){
+  el.innerHTML='';
+  var i=0;
+  var cursor=document.createElement('span');
+  cursor.className='ai-cursor';
+  cursor.textContent='|';
+  function tick(){
+    if(i<rawText.length){
+      el.textContent=rawText.substring(0, i+1);
+      el.appendChild(cursor);
+      i++;
+      var delay = rawText[i-1]==='\n' ? 80 : 20;
+      setTimeout(tick, delay);
+    }else{
+      // 打字完成，渲染 markdown
+      cursor.remove();
+      fetch('/api/ai-review/'+document.getElementById('ai-review').getAttribute('data-article-id'))
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(data.code===0 && data.data && data.data.rendered){
+            el.innerHTML=data.data.rendered;
+          }
+        }).catch(function(){});
+    }
+  }
+  tick();
+}
+
+function generateAIReview(articleId, el){
+  el.innerHTML='<span class="ai-loading">正在生成 AI 点评…</span>';
+  fetch('/api/ai-review/'+articleId)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.code===0 && data.data && data.data.rendered){
+        el.innerHTML=data.data.rendered;
+      }else{
+        el.textContent='AI 点评生成失败，请稍后再试。';
+      }
+    })
+    .catch(function(){
+      el.textContent='AI 点评生成失败，请稍后再试。';
+    });
+}
+</script>
+
+{{ template "foot" . }}
+{{ end }}

@@ -1,0 +1,44 @@
+{{ define "admin_dashboard" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">文章</div><div class="num">{{ .Stats.ArticleCount }}</div></div>
+  <div class="stat-card"><div class="label">用户</div><div class="num">{{ .Stats.UserCount }}</div></div>
+  <div class="stat-card"><div class="label">评论</div><div class="num">{{ .Stats.CommentCount }}</div></div>
+  <div class="stat-card"><div class="label">标签</div><div class="num">{{ .Stats.TagCount }}</div></div>
+  <div class="stat-card"><div class="label">总浏览</div><div class="num">{{ .Stats.TotalViews }}</div></div>
+  <div class="stat-card"><div class="label">总点赞</div><div class="num">{{ .Stats.TotalLikes }}</div></div>
+  <div class="stat-card"><div class="label">活跃用户</div><div class="num">{{ .Stats.OnlineUsers }}</div></div>
+  <div class="stat-card"><div class="label">今日文章</div><div class="num">{{ .Stats.TodayArticles }}</div></div>
+  <div class="stat-card"><div class="label">今日评论</div><div class="num">{{ .Stats.TodayComments }}</div></div>
+</div>
+<div style="margin-bottom:24px;padding:14px 20px;background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--card-border);border-radius:var(--radius-lg);font-size:14px;color:var(--text-secondary)">
+  <span style="font-weight:500">建站时间：</span>{{ .Stats.SiteCreated }}
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h3>最近文章</h3>
+    <ul>
+    {{ range .Stats.RecentArticles }}
+      <li><a href="/admin/articles/{{ .ID }}/edit">{{ .Title }}</a> <span class="muted"> · {{ formatTime .CreatedAt }}</span></li>
+    {{ else }}<li class="muted">暂无</li>{{ end }}
+    </ul>
+  </section>
+  <section class="panel">
+    <h3>最近评论</h3>
+    <ul>
+    {{ range .Stats.RecentComments }}
+      <li>
+        <strong>{{ if .User }}{{ .User.Nickname }}{{ end }}</strong>
+        @ {{ if .Article }}<a href="/article/{{ if .Article.Slug }}{{ .Article.Slug }}{{ else }}{{ .ArticleID }}{{ end }}">{{ .Article.Title }}</a>{{ end }}
+        <div class="muted">{{ .Content }} · {{ formatTime .CreatedAt }}</div>
+      </li>
+    {{ else }}<li class="muted">暂无</li>{{ end }}
+    </ul>
+  </section>
+</div>
+
+{{ template "admin_shell_close" . }}
+{{ end }}

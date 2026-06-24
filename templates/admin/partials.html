@@ -1,0 +1,128 @@
+{{ define "admin_head" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ .Title }} · 后台 · {{ .Site.SiteName }}</title>
+<link rel="icon" type="image/jpeg" href="/static/favicon.jpg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/static/admin.css?v=18">
+<style id="dark-overrides">
+html.dark{color-scheme:dark}
+html.dark body{background:#111827;color:#f9fafb}
+html.dark .admin-topbar{background:rgba(31,41,55,0.92);border-bottom-color:rgba(255,255,255,0.06)}
+html.dark .admin-topbar h1{color:#f9fafb}
+html.dark .stat-card,html.dark .panel,html.dark .form,html.dark .form-grid .main{background:rgba(31,41,55,0.82);border-color:rgba(255,255,255,0.06);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+html.dark .stat-card .num{color:#f9fafb}
+html.dark .stat-card .label{color:#9ca3af}
+html.dark .panel h3,html.dark .panel h4{color:#f9fafb;border-bottom-color:#374151}
+html.dark .panel ul li{border-bottom-color:#374151}
+html.dark a{color:#60a5fa}
+html.dark a:hover{color:#93bbfd}
+html.dark .data-table{background:#1f2937;border-color:#374151}
+html.dark .data-table th{background:#111827;color:#9ca3af}
+html.dark .data-table th,html.dark .data-table td{border-bottom-color:#374151}
+html.dark .data-table tr:hover td{background:rgba(96,165,250,0.04)}
+html.dark .data-table input,html.dark .data-table select{background:#111827;border-color:#4b5563;color:#f9fafb}
+html.dark .btn{background:#1f2937;border-color:#374151;color:#9ca3af}
+html.dark .btn:hover{border-color:#60a5fa;color:#60a5fa}
+html.dark .btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
+html.dark .badge{background:#111827;border-color:#374151;color:#9ca3af}
+html.dark .badge.ok{background:rgba(22,163,74,0.12);color:#4ade80}
+html.dark .badge.warn{background:rgba(245,158,11,0.12);color:#fbbf24}
+html.dark .badge.danger{background:rgba(220,38,38,0.12);color:#f87171}
+html.dark .toolbar input,html.dark .toolbar select{background:#1f2937;border-color:#4b5563;color:#f9fafb}
+html.dark .form input:not([type="checkbox"]):not([type="radio"]),html.dark .form textarea,html.dark .form select{background:#1f2937;border-color:#4b5563;color:#f9fafb}
+html.dark .form label{color:#9ca3af}
+html.dark .form-grid input:not([type="checkbox"]):not([type="radio"]),html.dark .form-grid textarea,html.dark .form-grid select{background:#1f2937;border-color:#4b5563;color:#f9fafb}
+html.dark .form-grid label{color:#9ca3af}
+html.dark .tag-checks .check{background:#111827;border-color:#374151;color:#9ca3af}
+html.dark .tag-check-item{background:#111827;border-color:#374151;color:#9ca3af}
+html.dark .publish-options .check{background:#111827;border-color:#374151;color:#9ca3af}
+html.dark .md-preview{background:#1f2937;border-color:#4b5563;color:#e5e7eb}
+html.dark .link-btn{color:#9ca3af}
+html.dark .link-btn:hover{color:#f9fafb}
+html.dark .link-btn.danger{color:#f87171}
+html.dark .topbar-user{background:#1f2937;border-color:#374151;color:#9ca3af}
+html.dark .topbar-user .avatar{background:#3b82f6}
+html.dark .selection-bar{background:#2563eb}
+html.dark .selection-bar .btn{background:#fff;color:#2563eb}
+html.dark .dark-toggle{color:#9ca3af}
+html.dark .dark-toggle:hover{background:rgba(255,255,255,0.08)}
+</style>
+<script>
+(function(){
+  var d=localStorage.getItem('darkMode');
+  var dark=d==='true'||(!d&&matchMedia('(prefers-color-scheme:dark)').matches);
+  if(dark)document.documentElement.classList.add('dark');
+})();
+</script>
+<script>
+function showToast(msg, type) {
+  var icons = { success: '✔', error: '✖', warning: '⚠', info: 'ℹ' };
+  var old = document.querySelectorAll('.ms-toast');
+  for (var i = 0; i < old.length; i++) { old[i].remove(); }
+  var t = document.createElement('div');
+  t.className = 'ms-toast ms-toast-' + (type || 'info');
+  t.innerHTML = '<div class="ms-toast-icon">' + (icons[type] || icons.info) + '</div>'
+    + '<div class="ms-toast-body"><div class="ms-toast-msg">' + msg + '</div></div>'
+    + '<button class="ms-toast-close" onclick="this.closest(\'.ms-toast\').remove()">&times;</button>'
+    + '<div class="ms-toast-bar-wrap"><div class="ms-toast-bar"></div></div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(function() { t.classList.add('ms-toast-show'); });
+  setTimeout(function() {
+    t.classList.remove('ms-toast-show');
+    setTimeout(function() { t.remove(); }, 350);
+  }, 2000);
+}
+</script>
+</head>
+<body>
+{{ end }}
+
+{{ define "admin_shell_open" }}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="logo">
+      <img src="/static/favicon.jpg" alt="">
+      <span>{{ .Site.SiteName }}</span>
+    </div>
+    <nav>
+      <a href="/admin"><i class="fa fa-dashboard"></i> 仪表盘</a>
+      <a href="/admin/articles"><i class="fa fa-file-text-o"></i> 文章</a>
+      <a href="/admin/tags"><i class="fa fa-tags"></i> 标签</a>
+      <a href="/admin/comments"><i class="fa fa-comments-o"></i> 评论</a>
+      <a href="/admin/users"><i class="fa fa-users"></i> 用户</a>
+      <a href="/admin/site"><i class="fa fa-cog"></i> 站点</a>
+      <a href="/admin/logs"><i class="fa fa-history"></i> 日志</a>
+      <div class="divider"></div>
+      <a href="/"><i class="fa fa-external-link"></i> 返回前台</a>
+    </nav>
+  </aside>
+  <section class="admin-main">
+    <header class="admin-topbar">
+      <h1>{{ .Title }}</h1>
+      <div class="topbar-right">
+        <button class="icon-btn" id="darkToggle" title="切换暗黑模式"><i class="fa fa-moon-o"></i></button>
+        {{ if .CurrentUser }}
+        <a href="/me" class="topbar-user">
+          <span class="avatar">
+            {{ if .CurrentUser.Avatar }}<img src="{{ .CurrentUser.Avatar }}" alt="">
+            {{ else }}{{ firstChar .CurrentUser.Nickname }}{{ end }}
+          </span>
+          {{ .CurrentUser.Nickname }}
+        </a>
+        {{ end }}
+        <form action="/logout" method="post" class="inline-form"><button class="link-btn">退出</button></form>
+      </div>
+    </header>
+    <div class="admin-body">
+{{ end }}
+
+{{ define "admin_shell_close" }}
+    </div>
+  </section>
+</div>
+<script src="/static/admin.js?v=4"></script>
+{{ end }}

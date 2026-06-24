@@ -1,0 +1,21 @@
+{{ define "archive" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card">
+  <h2>归档</h2>
+  {{ range .Years }}
+  <h3 class="archive-year">{{ .Year }}</h3>
+  {{ range .Months }}
+  <div class="archive-month">{{ printf "%02d" .Month }} 月</div>
+  <ul class="archive-list">
+  {{ range .Articles }}
+    <li><span class="muted">{{ formatDateOnly .CreatedAt }}</span><a href="/article/{{ if .Slug }}{{ .Slug }}{{ else }}{{ .ID }}{{ end }}">{{ .Title }}</a></li>
+  {{ end }}
+  </ul>
+  {{ end }}
+  {{ else }}<p class="empty">还没有文章。</p>{{ end }}
+</section>
+
+{{ template "foot" . }}
+{{ end }}

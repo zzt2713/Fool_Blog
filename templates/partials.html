@@ -1,0 +1,187 @@
+{{ define "head" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ .Title }} · {{ .Site.SiteName }}</title>
+<link rel="icon" type="image/jpeg" href="/static/favicon.jpg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/static/app.css?v=30">
+<script>
+function showToast(msg, type) {
+  var icons = { success: '✔', error: '✖', warning: '⚠', info: 'ℹ' };
+  var old = document.querySelectorAll('.ms-toast');
+  for (var i = 0; i < old.length; i++) { old[i].remove(); }
+  var t = document.createElement('div');
+  t.className = 'ms-toast ms-toast-' + (type || 'info');
+  t.innerHTML = '<div class="ms-toast-icon">' + (icons[type] || icons.info) + '</div>'
+    + '<div class="ms-toast-body"><div class="ms-toast-msg">' + msg + '</div></div>'
+    + '<button class="ms-toast-close" onclick="this.closest(\'.ms-toast\').remove()">&times;</button>'
+    + '<div class="ms-toast-bar-wrap"><div class="ms-toast-bar"></div></div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(function() { t.classList.add('ms-toast-show'); });
+  setTimeout(function() {
+    t.classList.remove('ms-toast-show');
+    setTimeout(function() { t.remove(); }, 350);
+  }, 2000);
+}
+</script>
+<style id="dark-overrides">
+html.dark{color-scheme:dark}
+html.dark body{background:#111827;color:#f9fafb}
+html.dark .site-header{background:rgba(17,24,39,0.6);border-bottom-color:rgba(255,255,255,0.08)}
+html.dark .card,html.dark .hero{background:rgba(31,41,55,0.55);border-color:rgba(255,255,255,0.06);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+html.dark .card.narrow{background:rgba(31,41,55,0.7)}
+html.dark .article-item{background:rgba(31,41,55,0.6);border-color:rgba(255,255,255,0.06)}
+html.dark .article-item:hover{box-shadow:0 4px 16px rgba(0,0,0,0.25)}
+html.dark a{color:#60a5fa}
+html.dark a:hover{color:#93bbfd}
+html.dark .brand{color:#f9fafb}
+html.dark .nav-links>a{color:#9ca3af}
+html.dark .nav-links>a:hover{color:#f9fafb;background:rgba(255,255,255,0.08)}
+html.dark .nav-links>a.active{color:#60a5fa;background:rgba(96,165,250,0.12)}
+html.dark .user-chip{background:#1f2937;border-color:#374151;color:#9ca3af}
+html.dark .btn-mini{background:#1f2937;border-color:#374151;color:#9ca3af}
+html.dark .card h2{border-bottom-color:#374151}
+html.dark .article-item .title{color:#f9fafb}
+html.dark .article-item .meta{color:#9ca3af}
+html.dark .article-item .summary{color:#9ca3af}
+html.dark .tag{background:rgba(96,165,250,0.12);color:#60a5fa}
+html.dark .tag:hover{background:#2563eb;color:#fff}
+html.dark .pagination a{border-color:#374151;color:#9ca3af}
+html.dark .pagination a:hover{border-color:#60a5fa;color:#60a5fa}
+html.dark .search-form input{background:transparent;border-bottom-color:#4b5563;color:#f9fafb}
+html.dark .search-form input:focus{border-bottom-color:#f9fafb}
+html.dark .form input,html.dark .form textarea,html.dark .form select{background:transparent;border-bottom-color:#4b5563;color:#f9fafb}
+html.dark .form input:focus,html.dark .form textarea:focus,html.dark .form select:focus{border-bottom-color:#f9fafb}
+html.dark .form label{color:#9ca3af}
+html.dark .alert{background:rgba(220,38,38,0.1);color:#f87171}
+html.dark .notice{background:rgba(96,165,250,0.1);color:#60a5fa}
+html.dark .comment-form textarea{background:transparent;border-bottom-color:#4b5563;color:#f9fafb}
+html.dark .comment-form textarea:focus{border-bottom-color:#f9fafb}
+html.dark .comment-body{color:#9ca3af}
+html.dark .muted{color:#6b7280}
+html.dark .article-toc .toc-title{color:#f9fafb;border-bottom-color:#374151}
+html.dark .article-toc a{color:#9ca3af}
+html.dark .article-toc li.active{border-left-color:#60a5fa}
+html.dark .article-toc li.active a{color:#60a5fa}
+html.dark .markdown-body{color:#e5e7eb}
+html.dark .markdown-body pre{background:#0f172a;border-color:#1e293b}
+html.dark .markdown-body code{background:#334155;color:#f472b6}
+html.dark .markdown-body pre code{background:transparent;color:#e2e8f0}
+html.dark .markdown-body th{background:#1f2937}
+html.dark .markdown-body th,html.dark .markdown-body td{border-color:#374151}
+html.dark .markdown-body blockquote{background:rgba(239,112,96,0.08);border-left-color:#ef7060}
+html.dark .markdown-body a{color:#ef7060;border-bottom-color:#ef7060}
+html.dark .markdown-body h2{border-bottom-color:#ef7060}
+html.dark .markdown-body h2::before{color:#ef7060}
+html.dark .markdown-body table tr{border-top-color:#374151}
+html.dark .markdown-body table tr:nth-child(2n){background:rgba(255,255,255,0.02)}
+html.dark .archive-list li{border-bottom-color:#374151}
+html.dark .site-footer{border-top-color:#374151}
+html.dark .link-btn{color:#9ca3af}
+html.dark .link-btn:hover{color:#f9fafb}
+html.dark .icon-btn{color:#9ca3af}
+html.dark .icon-btn:hover{background:rgba(255,255,255,0.08)}
+html.dark .nav-links .menu-toggle{color:#f9fafb}
+html.dark .ai-review-card{background:rgba(31,41,55,0.55);border-color:rgba(255,255,255,0.06)}
+html.dark .ai-review-content{color:#9ca3af}
+html.dark button.primary,html.dark .form .primary,html.dark .form-row button,html.dark .comment-form button,html.dark .search-form button{background:#2563eb}
+html.dark button.primary:hover,html.dark .form .primary:hover,html.dark .form-row button:hover,html.dark .comment-form button:hover,html.dark .search-form button:hover{background:#3b82f6}
+html.dark #like-btn{background:#2563eb}
+html.dark #like-btn:disabled{background:#dc2626}
+html.dark .form .primary:disabled,html.dark button.primary:disabled{background:#4b5563}
+</style>
+<script>
+(function(){
+  var d=localStorage.getItem('darkMode');
+  var dark=d==='true'||(!d&&matchMedia('(prefers-color-scheme:dark)').matches);
+  if(dark)document.documentElement.classList.add('dark');
+  // 壁纸：优先用 localStorage 缓存
+  var wp=localStorage.getItem('wallpaper');
+  if(wp){
+    document.addEventListener('DOMContentLoaded',function(){
+      applyWallpaper(wp);
+    });
+  }
+})();
+function applyWallpaper(url){
+  var b=document.body;
+  if(!b)return;
+  if(!b._wpBefore){
+    b._wpBefore=document.createElement('style');
+    b._wpBefore.id='wp-bg';
+    document.head.appendChild(b._wpBefore);
+  }
+  var dark=document.documentElement.classList.contains('dark');
+  var overlay=dark
+    ?'linear-gradient(180deg,rgba(17,24,39,0.72),rgba(17,24,39,0.85))'
+    :'linear-gradient(180deg,rgba(240,242,245,0.82),rgba(240,242,245,0.9))';
+  b._wpBefore.textContent=
+    'body::before{content:"";position:fixed;inset:0;background-image:url("'+url+'");background-size:cover;background-position:center;background-repeat:no-repeat;z-index:-2;}'+
+    'body::after{content:"";position:fixed;inset:0;background:'+overlay+';z-index:-1;}';
+}
+</script>
+</head>
+<body>
+{{ end }}
+
+{{ define "nav" }}
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/">
+      <img class="brand-icon" src="/static/favicon.jpg" alt="">
+      <span>{{ .Site.SiteName }}</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/"><i class="fa fa-home"></i> 首页</a>
+      <a href="/archive"><i class="fa fa-archive"></i> 归档</a>
+      <a href="/tags"><i class="fa fa-tags"></i> 标签</a>
+      <a href="/search"><i class="fa fa-search"></i> 搜索</a>
+      {{ if .CurrentUser }}
+        {{ if eq .CurrentUser.Role 1 }}<a class="btn-mini" href="/admin"><i class="fa fa-cog"></i> 后台</a>{{ end }}
+        <a href="/me" class="user-chip">
+          {{ if .CurrentUser.Avatar }}<img src="{{ .CurrentUser.Avatar }}" alt="">{{ else }}<span class="avatar-fallback">{{ firstChar .CurrentUser.Nickname }}</span>{{ end }}
+          {{ .CurrentUser.Nickname }}
+        </a>
+        <form action="/logout" method="post" class="inline-form"><button class="link-btn">退出</button></form>
+      {{ else }}
+        <a href="/login">登录</a>
+        <a href="/register" class="btn-mini">注册</a>
+      {{ end }}
+      <button class="icon-btn" id="wpRefresh" title="换一张壁纸"><i class="fa fa-picture-o"></i></button>
+      <button class="icon-btn" id="darkToggle" title="切换暗黑模式"><i class="fa fa-moon-o"></i></button>
+    </nav>
+    <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
+  </div>
+</header>
+<main class="container content">
+{{ end }}
+
+{{ define "foot" }}
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <p>{{ .Site.SiteSubtitle }}</p>
+    {{ if .Site.ICPInfo }}<p class="muted">{{ .Site.ICPInfo }}</p>{{ end }}
+    <p class="muted">
+      {{ if .Site.FooterText }}{{ .Site.FooterText }}{{ else }}Powered by Fool Blog · Go{{ end }}
+      <span style="margin-left:12px"><i class="fa fa-eye"></i> 今日访问 {{ .TodayVisitors }} · 总访问 {{ .TotalVisitors }}</span>
+    </p>
+  </div>
+</footer>
+<script src="/static/app.js?v=11"></script>
+</body>
+</html>
+{{ end }}
+
+{{ define "pagination" }}
+{{ if or .HasPrev .HasNext }}
+<div class="pagination" style="margin-top:20px">
+  {{ if .HasPrev }}<a href="?page={{ sub .Page 1 }}{{ if .Q }}&q={{ .Q }}{{ end }}{{ if .Status }}&status={{ .Status }}{{ end }}{{ if .ArticleID }}&article_id={{ .ArticleID }}{{ end }}{{ if .UserID }}&user_id={{ .UserID }}{{ end }}">&larr; 上一页</a>{{ end }}
+  <span>第 {{ .Page }} 页 / 共 {{ .Total }} 条</span>
+  {{ if .HasNext }}<a href="?page={{ add .Page 1 }}{{ if .Q }}&q={{ .Q }}{{ end }}{{ if .Status }}&status={{ .Status }}{{ end }}{{ if .ArticleID }}&article_id={{ .ArticleID }}{{ end }}{{ if .UserID }}&user_id={{ .UserID }}{{ end }}">下一页 &rarr;</a>{{ end }}
+</div>
+{{ end }}
+{{ end }}

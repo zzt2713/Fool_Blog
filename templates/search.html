@@ -1,0 +1,32 @@
+{{ define "search" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card">
+  <h2>搜索文章</h2>
+  <form action="/search" method="get" class="search-form">
+    <input type="text" name="q" value="{{ .Q }}" placeholder="输入关键词（标题 / 摘要 / 正文 / 标签）" autofocus>
+    <button type="submit">搜索</button>
+  </form>
+  {{ if .Q }}
+    {{ if .Articles }}
+    <p class="muted">共 {{ len .Articles }} 条结果</p>
+    <ul class="article-list">
+    {{ range .Articles }}
+      <li class="article-item" onclick="location.href='/article/{{ if .Slug }}{{ .Slug }}{{ else }}{{ .ID }}{{ end }}'">
+        <a class="title" href="/article/{{ if .Slug }}{{ .Slug }}{{ else }}{{ .ID }}{{ end }}">{{ .Title }}</a>
+        <div class="meta">
+          {{ formatTime .CreatedAt }}
+          {{ range .Tags }}<a class="tag" href="/tag/{{ .ID }}">{{ .Name }}</a>{{ end }}
+        </div>
+        {{ if .Summary }}<p class="summary">{{ .Summary }}</p>{{ end }}
+      </li>
+    {{ end }}
+    </ul>
+    {{ else }}<p class="empty">没有匹配的文章。</p>{{ end }}
+  {{ end }}
+  {{ template "pagination" . }}
+</section>
+
+{{ template "foot" . }}
+{{ end }}

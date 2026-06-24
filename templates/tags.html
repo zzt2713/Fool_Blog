@@ -1,0 +1,13 @@
+{{ define "tags" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card">
+  <h2>所有标签</h2>
+  <div class="tag-cloud big">
+    {{ range .Tags }}<a class="tag" href="/tag/{{ .ID }}">{{ .Name }}</a>{{ else }}<p class="empty">暂无标签。</p>{{ end }}
+  </div>
+</section>
+
+{{ template "foot" . }}
+{{ end }}

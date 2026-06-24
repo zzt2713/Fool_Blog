@@ -1,0 +1,28 @@
+# 敏感配置
+config.yaml
+
+# 数据与上传
+/data/
+/uploads/
+/exports/
+
+# 编译产物
+*.exe
+fool_blog
+fool_blog.exe
+
+# 日志
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Python 转换脚本（临时使用）
+convert_*.py
+*.sql

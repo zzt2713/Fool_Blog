@@ -1,0 +1,84 @@
+{{ define "profile" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card">
+  <h2>个人中心</h2>
+  {{ if .Message }}<div class="notice">{{ .Message }}</div>{{ end }}
+  {{ if .Error }}<div class="alert">{{ .Error }}</div>{{ end }}
+
+  <div class="profile-grid">
+    <div class="profile-avatar-card">
+      <div class="profile-avatar" id="avatar-display">
+        {{ if .Me.Avatar }}<img id="avatar-img" src="{{ .Me.Avatar }}" alt="">
+        {{ else }}<span id="avatar-letter">{{ firstChar .Me.Nickname }}</span>{{ end }}
+      </div>
+      <input type="file" id="avatar-input" accept="image/*" style="display:none">
+      <button type="button" class="primary" onclick="document.getElementById('avatar-input').click()">上传头像</button>
+      <button type="button" class="primary" id="random-avatar-btn" style="margin-top:8px">随机头像</button>
+      <p class="muted" style="margin-top:8px">用户名: {{ .Me.Username }}</p>
+    </div>
+
+    <form method="post" action="/me" class="form">
+      <label>昵称
+        <input name="nickname" value="{{ .Me.Nickname }}" required>
+      </label>
+      <label>邮箱
+        <input type="email" name="email" value="{{ .Me.Email }}">
+      </label>
+      <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+      <p class="muted">不修改密码请留空</p>
+      <label>旧密码
+        <span class="input-eye-wrap">
+          <input type="password" name="old_password">
+          <button type="button" class="input-eye-btn" onclick="togglePwd(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </span>
+      </label>
+      <label>新密码
+        <span class="input-eye-wrap">
+          <input type="password" name="new_password" minlength="6" placeholder="至少 6 位">
+          <button type="button" class="input-eye-btn" onclick="togglePwd(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </span>
+      </label>
+      <button type="submit" class="primary">保存</button>
+    </form>
+  </div>
+</section>
+
+<script>
+document.getElementById('avatar-input').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const fd = new FormData();
+  fd.append('file', f);
+  try {
+    const r = await fetch('/me/avatar', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (data.code === 0) {
+      const url = data.data.url + '?t=' + Date.now();
+      document.getElementById('avatar-display').innerHTML = '<img src="' + url + '">';
+    } else {
+      alert(data.msg || '上传失败');
+    }
+  } catch (err) { alert('上传失败'); }
+});
+document.getElementById('random-avatar-btn').addEventListener('click', async () => {
+  try {
+    const r = await fetch('/me/avatar/random', { method: 'POST' });
+    const data = await r.json();
+    if (data.code === 0) {
+      const url = data.data.url + '?t=' + Date.now();
+      document.getElementById('avatar-display').innerHTML = '<img src="' + url + '">';
+    } else {
+      alert(data.msg || '获取失败');
+    }
+  } catch (err) { alert('获取失败'); }
+});
+</script>
+
+{{ template "foot" . }}
+{{ end }}

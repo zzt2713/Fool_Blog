@@ -1,0 +1,25 @@
+{{ define "admin_logs" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+<table class="data-table">
+  <thead><tr><th>时间</th><th>操作人</th><th>模块</th><th>动作</th><th>对象</th><th>摘要</th><th>IP</th></tr></thead>
+  <tbody>
+  {{ range .Logs }}
+    <tr>
+      <td class="muted">{{ formatTime .CreatedAt }}</td>
+      <td>{{ .Operator }}</td>
+      <td><span class="badge">{{ .Module }}</span></td>
+      <td>{{ .Action }}</td>
+      <td class="muted">{{ .TargetType }}#{{ .TargetID }}</td>
+      <td>{{ .Summary }}</td>
+      <td class="muted">{{ .IP }}</td>
+    </tr>
+  {{ else }}<tr><td colspan="7" class="muted" style="text-align:center;padding:24px">暂无日志</td></tr>{{ end }}
+  </tbody>
+</table>
+
+{{ template "pagination" . }}
+
+{{ template "admin_shell_close" . }}
+{{ end }}

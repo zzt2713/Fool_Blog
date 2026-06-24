@@ -1,0 +1,27 @@
+{{ define "admin_comments" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+<table class="data-table">
+  <thead><tr><th>ID</th><th>文章</th><th>用户</th><th>内容</th><th>IP</th><th>时间</th><th>操作</th></tr></thead>
+  <tbody>
+  {{ range .Comments }}
+    <tr>
+      <td class="muted">#{{ .ID }}</td>
+      <td>{{ if .Article }}<a href="/article/{{ if .Article.Slug }}{{ .Article.Slug }}{{ else }}{{ .ArticleID }}{{ end }}" target="_blank">{{ .Article.Title }}</a>{{ end }}</td>
+      <td>{{ if .User }}{{ .User.Nickname }}{{ end }}</td>
+      <td style="max-width:360px;white-space:pre-wrap">{{ .Content }}</td>
+      <td class="muted">{{ .IP }}</td>
+      <td class="muted">{{ formatTime .CreatedAt }}</td>
+      <td>
+        <button class="link-btn danger" onclick="deleteItem('/admin/comments/{{ .ID }}/delete', this, '确认删除该评论？')">删除</button>
+      </td>
+    </tr>
+  {{ else }}<tr><td colspan="7" class="muted" style="text-align:center;padding:24px">暂无评论</td></tr>{{ end }}
+  </tbody>
+</table>
+
+{{ template "pagination" . }}
+
+{{ template "admin_shell_close" . }}
+{{ end }}

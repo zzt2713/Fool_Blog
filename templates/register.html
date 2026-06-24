@@ -1,0 +1,55 @@
+{{ define "register" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card narrow auth-card">
+  <h2>创建账号</h2>
+  {{ if .Error }}<div class="alert">{{ .Error }}</div>{{ end }}
+  <form action="/register" method="post" class="form auth-form" data-loading-text="注册中…" novalidate>
+    <label>用户名 <input name="username" value="{{ .Username }}" required autofocus></label>
+    <label>昵称 <input name="nickname" value="{{ .Nickname }}"></label>
+    <div class="form-row">
+      <label style="flex:1">邮箱 <input type="email" name="email" value="{{ .Email }}" required id="reg-email" placeholder="请输入邮箱"></label>
+      <div style="padding-top:22px"><button type="button" id="send-code-btn" onclick="sendVerifyCode()">发送验证码</button></div>
+    </div>
+    <label>验证码 <input name="code" required maxlength="6" placeholder="6 位数字验证码" pattern="\d{6}"></label>
+    <label>密码
+      <span class="input-eye-wrap">
+        <input type="password" name="password" required minlength="6" placeholder="至少 6 位">
+        <button type="button" class="input-eye-btn" onclick="togglePwd(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </span>
+    </label>
+    <button type="submit" class="primary auth-submit">注册</button>
+  </form>
+  <p class="muted" style="text-align:center;margin-top:14px">已有账号？<a href="/login">直接登录</a></p>
+</section>
+
+<script>
+var codeTimer = null;
+function sendVerifyCode() {
+  var email = document.getElementById('reg-email').value.trim();
+  if (!email) { showToast('请先输入邮箱', 'warning'); return; }
+  var btn = document.getElementById('send-code-btn');
+  btn.disabled = true;
+  fetch('/register/send-code', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'email=' + encodeURIComponent(email)
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.error) { showToast(d.error, 'error'); btn.disabled = false; return; }
+    showToast('验证码已发送，请查收邮箱', 'success');
+    var sec = 60;
+    btn.textContent = sec + 's';
+    codeTimer = setInterval(function() {
+      sec--;
+      if (sec <= 0) { clearInterval(codeTimer); btn.textContent = '发送验证码'; btn.disabled = false; }
+      else { btn.textContent = sec + 's'; }
+    }, 1000);
+  }).catch(function() { showToast('发送失败，请重试', 'error'); btn.disabled = false; });
+}
+</script>
+
+{{ template "foot" . }}
+{{ end }}

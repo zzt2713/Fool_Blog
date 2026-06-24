@@ -1,0 +1,213 @@
+{{ define "admin_article_form" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+<form method="post" class="form-grid" action="{{ if .IsNew }}/admin/articles{{ else }}/admin/articles/{{ .Article.ID }}{{ end }}" novalidate onsubmit="if(!this.title.value.trim()){showToast('请输入文章标题','warning');this.title.focus();return false;}">
+  <div class="main">
+    <label>标题
+      <input name="title" value="{{ .Article.Title }}" required placeholder="文章标题">
+    </label>
+    <label>Slug（可选）
+      <input name="slug" value="{{ .Article.Slug }}" placeholder="自定义访问别名">
+    </label>
+    <label>摘要
+      <textarea name="summary" rows="3" placeholder="留空则自动从正文截取" style="font-family:var(--sans);font-size:14px">{{ .Article.Summary }}</textarea>
+    </label>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:13px;font-weight:500;color:var(--text-secondary)">Markdown 正文</span>
+      <div class="editor-toolbar">
+        <button type="button" class="btn small" id="btn-insert-image">插入图片</button>
+        <input type="file" id="img-upload" accept="image/*" style="display:none;pointer-events:none">
+        <span class="muted" id="img-status"></span>
+        {{ if .IsNew }}<button type="button" class="btn small" id="btn-import-md">导入 .md</button>
+        <input type="file" id="md-import" accept=".md" style="display:none;pointer-events:none">{{ end }}
+        <span style="flex:1"></span>
+        <button type="button" class="btn small" id="btn-toggle-preview">关闭预览</button>
+      </div>
+      <div class="editor-split">
+        <textarea id="content_md" name="content_md" rows="22" placeholder="支持 Markdown 语法">{{ .Article.ContentMD }}</textarea>
+        <div id="md-preview" class="md-preview markdown-body"></div>
+      </div>
+    </div>
+  </div>
+  <aside class="side">
+    <div class="panel">
+      <h4>发布</h4>
+      <div class="publish-options">
+        <label class="check">
+          <input type="checkbox" name="is_top" {{ if eq .Article.IsTop 1 }}checked{{ end }}> 置顶
+        </label>
+        <label class="check">
+          <input type="radio" name="status" value="0" {{ if eq .Article.Status 0 }}checked{{ end }}> 草稿
+        </label>
+        <label class="check">
+          <input type="radio" name="status" value="1" {{ if eq .Article.Status 1 }}checked{{ end }}> 发布
+        </label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4>封面</h4>
+      <div class="cover-preview" id="cover-preview">
+        {{ if .Article.Cover }}<img src="{{ .Article.Cover }}" id="cover-img">
+        {{ else }}<span>暂无封面</span>{{ end }}
+      </div>
+      <button type="button" class="btn block" id="btn-upload-cover">上传封面</button>
+      <input type="file" id="cover-upload" accept="image/*" style="display:none">
+      <input type="hidden" name="cover" id="cover-url" value="{{ .Article.Cover }}">
+    </div>
+
+    <div class="panel">
+      <h4>标签</h4>
+      <div class="tag-checks">
+      {{ range .Tags }}
+        <label class="tag-check-item"><input type="checkbox" name="tag_ids" value="{{ .ID }}" {{ if index $.SelectedTag .ID }}checked{{ end }}> {{ .Name }}</label>
+      {{ else }}<span class="muted">无标签，请先到<a href="/admin/tags">标签管理</a>中添加</span>{{ end }}
+      </div>
+    </div>
+
+    <div class="panel">
+      <button type="submit" class="btn primary block">保存</button>
+      {{ if not .IsNew }}<a href="/article/{{ if .Article.Slug }}{{ .Article.Slug }}{{ else }}{{ .Article.ID }}{{ end }}" target="_blank" class="btn block">预览</a>{{ end }}
+      <a href="/admin/articles" class="btn block ghost">返回列表</a>
+    </div>
+  </aside>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+function uploadFile(url, file, cb) {
+  const fd = new FormData(); fd.append('file', file);
+  return fetch(url, { method: 'POST', body: fd }).then(r => r.json()).then(cb);
+}
+
+// 封面上传
+document.getElementById('btn-upload-cover').addEventListener('click', () => document.getElementById('cover-upload').click());
+document.getElementById('cover-upload').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  uploadFile('/admin/upload/cover', f, data => {
+    if (data.code === 0) {
+      document.getElementById('cover-url').value = data.data.url;
+      document.getElementById('cover-preview').innerHTML = '<img src="' + data.data.url + '">';
+    } else showToast(data.msg || '上传失败', 'error');
+  });
+});
+
+// 插入图片
+document.getElementById('btn-insert-image').addEventListener('click', () => document.getElementById('img-upload').click());
+document.getElementById('img-upload').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const status = document.getElementById('img-status');
+  status.textContent = '上传中…';
+  uploadFile('/admin/upload/article', f, data => {
+    if (data.code === 0) {
+      const ta = document.getElementById('content_md');
+      const md = '![](' + data.data.url + ')\n';
+      const start = ta.selectionStart;
+      ta.value = ta.value.slice(0, start) + md + ta.value.slice(ta.selectionEnd);
+      ta.focus(); ta.selectionStart = ta.selectionEnd = start + md.length;
+      status.textContent = '已插入';
+      setTimeout(() => status.textContent = '', 2000);
+    } else { status.textContent = ''; showToast(data.msg || '上传失败', 'error'); }
+  });
+});
+
+// 导入 .md 文件（新建文章时）
+var importBtn = document.getElementById('btn-import-md');
+if (importBtn) {
+  importBtn.addEventListener('click', () => document.getElementById('md-import').click());
+  document.getElementById('md-import').addEventListener('change', async function(e) {
+    var f = e.target.files[0]; if (!f) return;
+    var content = await f.text();
+    var lines = content.split('\n');
+    var title = '';
+    var bodyStart = 0;
+    if (lines.length > 0) {
+      var first = lines[0].trim();
+      if (first.startsWith('# ')) {
+        title = first.slice(2).trim();
+        bodyStart = 1;
+        if (lines.length > 1 && lines[1].trim() === '') bodyStart = 2;
+      }
+    }
+    if (title) document.querySelector('input[name="title"]').value = title;
+    document.getElementById('content_md').value = lines.slice(bodyStart).join('\n');
+    updatePreview();
+  });
+}
+
+// 实时预览 + 同步滚动
+var mdTa = document.getElementById('content_md');
+var mdPreview = document.getElementById('md-preview');
+var editorSplit = mdTa ? mdTa.parentNode : null;
+var previewVisible = true;
+
+// 粘贴图片到编辑器
+if (mdTa) {
+  mdTa.addEventListener('paste', async function(e) {
+    var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    var imageFile = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        imageFile = items[i].getAsFile();
+        break;
+      }
+    }
+    if (!imageFile) return;
+    e.preventDefault();
+
+    var uploadStatus = document.getElementById('img-status');
+    if (uploadStatus) uploadStatus.textContent = '正在上传粘贴的图片...';
+
+    var fd = new FormData();
+    fd.append('file', imageFile, 'paste-' + Date.now() + '.png');
+    try {
+      var resp = await fetch('/admin/upload/article', { method: 'POST', body: fd });
+      var data = await resp.json();
+      if (data.code === 0 && data.data && data.data.url) {
+        var pos = mdTa.selectionStart;
+        var before = mdTa.value.substring(0, pos);
+        var after = mdTa.value.substring(pos);
+        var insert = '![](' + data.data.url + ')';
+        mdTa.value = before + insert + after;
+        mdTa.selectionStart = mdTa.selectionEnd = pos + insert.length;
+        mdTa.focus();
+        updatePreview();
+        if (uploadStatus) uploadStatus.textContent = '图片上传成功';
+      } else {
+        if (uploadStatus) uploadStatus.textContent = '';
+        showToast('图片上传失败', 'error');
+      }
+    } catch (err) {
+      if (uploadStatus) uploadStatus.textContent = '';
+      showToast('图片上传失败', 'error');
+    }
+  });
+}
+
+// 实时预览 + 同步滚动
+var mdTa = document.getElementById('content_md');
+function updatePreview() {
+  mdPreview.innerHTML = marked.parse(mdTa.value || '*暂无内容*');
+}
+
+mdTa.addEventListener('scroll', function() {
+  if (!previewVisible) return;
+  var ratio = mdTa.scrollTop / (mdTa.scrollHeight - mdTa.clientHeight);
+  mdPreview.scrollTop = ratio * (mdPreview.scrollHeight - mdPreview.clientHeight);
+});
+
+document.getElementById('btn-toggle-preview').addEventListener('click', function() {
+  previewVisible = !previewVisible;
+  mdPreview.classList.toggle('hidden', !previewVisible);
+  editorSplit.classList.toggle('no-preview', !previewVisible);
+  this.textContent = previewVisible ? '关闭预览' : '打开预览';
+  if (previewVisible) updatePreview();
+});
+
+mdTa.addEventListener('input', updatePreview);
+updatePreview();
+</script>
+
+{{ template "admin_shell_close" . }}
+{{ end }}

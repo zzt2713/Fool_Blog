@@ -1,0 +1,22 @@
+{{ define "tag" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card">
+  <h2>标签：{{ .Tag.Name }}</h2>
+  {{ if .Articles }}
+  <ul class="article-list">
+  {{ range .Articles }}
+    <li class="article-item" onclick="location.href='/article/{{ if .Slug }}{{ .Slug }}{{ else }}{{ .ID }}{{ end }}'">
+      <a class="title" href="/article/{{ if .Slug }}{{ .Slug }}{{ else }}{{ .ID }}{{ end }}">{{ .Title }}</a>
+      <div class="meta">{{ formatTime .CreatedAt }} <span class="dot">·</span> 浏览 {{ .ViewCount }}</div>
+      {{ if .Summary }}<p class="summary">{{ .Summary }}</p>{{ end }}
+    </li>
+  {{ end }}
+  </ul>
+  {{ else }}<p class="empty">该标签下暂无文章。</p>{{ end }}
+  {{ template "pagination" . }}
+</section>
+
+{{ template "foot" . }}
+{{ end }}

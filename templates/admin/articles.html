@@ -1,0 +1,77 @@
+{{ define "admin_articles" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+<div class="toolbar">
+  <form method="get" class="inline-form">
+    <input name="q" value="{{ .Q }}" placeholder="搜索标题 / 摘要">
+    <select name="status">
+      <option value="">全部状态</option>
+      <option value="0" {{ if eq .Status "0" }}selected{{ end }}>草稿</option>
+      <option value="1" {{ if eq .Status "1" }}selected{{ end }}>已发布</option>
+    </select>
+    <button class="btn">筛选</button>
+  </form>
+  <div class="right">
+    <a class="btn primary" href="/admin/articles/new">新建文章</a>
+  </div>
+</div>
+
+<form id="bulk-form" method="post" action="/admin/articles/export/zip">
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="row-check"><input type="checkbox" id="check-all"></th>
+      <th>ID</th><th>标题</th><th>状态</th><th>置顶</th><th>浏览</th><th>评论</th><th>创建时间</th><th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{ range .Articles }}
+    <tr>
+      <td class="row-check"><input type="checkbox" name="ids" value="{{ .ID }}" class="row-check-box"></td>
+      <td class="muted">#{{ .ID }}</td>
+      <td><a href="/admin/articles/{{ .ID }}/edit"><strong>{{ .Title }}</strong></a></td>
+      <td>{{ if eq .Status 1 }}<span class="badge ok">已发布</span>{{ else }}<span class="badge warn">草稿</span>{{ end }}</td>
+      <td>{{ if eq .IsTop 1 }}<span class="badge">置顶</span>{{ else }}—{{ end }}</td>
+      <td>{{ .ViewCount }}</td>
+      <td>{{ .CommentCount }}</td>
+      <td class="muted">{{ formatTime .CreatedAt }}</td>
+      <td>
+        <div class="actions">
+          <a href="/article/{{ if .Slug }}{{ .Slug }}{{ else }}{{ .ID }}{{ end }}" target="_blank">预览</a>
+          <a href="/admin/articles/{{ .ID }}/export">导出</a>
+          <button class="link-btn danger" onclick="deleteItem('/admin/articles/{{ .ID }}/delete', this, '确认删除该文章？')">删除</button>
+        </div>
+      </td>
+    </tr>
+  {{ else }}
+    <tr><td colspan="9" class="muted" style="text-align:center;padding:32px">暂无文章</td></tr>
+  {{ end }}
+  </tbody>
+</table>
+<div class="selection-bar" id="selection-bar">
+  <span>已选 <strong id="sel-count">0</strong> 篇</span>
+  <button type="submit" class="btn">批量导出 ZIP</button>
+  <button type="button" class="link-btn" style="color:#fff" onclick="clearSel()">取消</button>
+</div>
+</form>
+
+{{ template "pagination" . }}
+
+<script>
+const allBox = document.getElementById('check-all');
+const boxes = () => document.querySelectorAll('.row-check-box');
+const bar = document.getElementById('selection-bar');
+const counter = document.getElementById('sel-count');
+function refresh() {
+  const checked = [...boxes()].filter(b => b.checked);
+  counter.textContent = checked.length;
+  bar.classList.toggle('active', checked.length > 0);
+}
+allBox.addEventListener('change', e => { boxes().forEach(b => b.checked = e.target.checked); refresh(); });
+boxes().forEach(b => b.addEventListener('change', refresh));
+function clearSel() { boxes().forEach(b => b.checked = false); allBox.checked = false; refresh(); }
+</script>
+
+{{ template "admin_shell_close" . }}
+{{ end }}

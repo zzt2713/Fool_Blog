@@ -1,0 +1,25 @@
+{{ define "login" }}
+{{ template "head" . }}
+{{ template "nav" . }}
+
+<section class="card narrow auth-card">
+  <h2>欢迎回来</h2>
+  {{ if .Error }}<div class="alert">{{ .Error }}</div>{{ end }}
+  <form action="/login" method="post" class="form auth-form" data-loading-text="登录中…" novalidate>
+    <input type="hidden" name="next" value="{{ .Next }}">
+    <label>用户名 <input name="username" value="{{ .Username }}" required autofocus></label>
+    <label>密码
+      <span class="input-eye-wrap">
+        <input type="password" name="password" required>
+        <button type="button" class="input-eye-btn" onclick="togglePwd(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </span>
+    </label>
+    <button type="submit" class="primary auth-submit">登录</button>
+  </form>
+  <p class="muted" style="text-align:center;margin-top:14px">没有账号？<a href="/register">立即注册</a></p>
+</section>
+
+{{ template "foot" . }}
+{{ end }}

@@ -1,0 +1,44 @@
+app:
+  addr: 0.0.0.0:9200
+  name: Fool Blog
+
+database:
+  driver: sqlite
+  path: data/blog.db
+  # MySQL 配置（driver 为 mysql 时启用）
+  # host: 127.0.0.1
+  # port: "3306"
+  # name: fool_blog
+  # user: root
+  # password: ""
+
+security:
+  session_key: change-this-to-random-string
+  password_salt: change-this-salt
+
+upload:
+  max_size_mb: 10
+  avatar_dir: uploads/avatar
+  cover_dir: uploads/cover
+  article_dir: uploads/article
+
+wallpaper:
+  enabled: true
+  api: https://www.loliapi.com/acg/pc/
+  custom_url: ""
+
+admin:
+  default_username: admin
+  default_password: admin123
+
+email:
+  host: smtp.example.com
+  port: 465
+  user: your-email@example.com
+  password: your-email-password
+  from: your-email@example.com
+
+ai:
+  base_url: https://api.openai.com/v1
+  api_key: sk-your-api-key
+  model: gpt-4o-mini

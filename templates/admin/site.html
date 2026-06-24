@@ -1,0 +1,48 @@
+{{ define "admin_site" }}
+{{ template "admin_head" . }}
+{{ template "admin_shell_open" . }}
+
+{{ if .Saved }}<script>showToast('设置已保存', 'success');</script>{{ end }}
+
+<form method="post" action="/admin/site" class="form">
+  <label>网站名称
+    <input name="site_name" value="{{ .Setting.SiteName }}">
+  </label>
+  <label>签名 / 副标题
+    <input name="site_subtitle" value="{{ .Setting.SiteSubtitle }}">
+  </label>
+  <label>首页欢迎语
+    <input name="welcome_text" value="{{ .Setting.WelcomeText }}" placeholder="留空则显示：欢迎来到 网站名">
+  </label>
+  <label>页脚文字
+    <input name="footer_text" value="{{ .Setting.FooterText }}" placeholder="留空则显示：Powered by Fool Blog · Go">
+  </label>
+  <label>建站时间
+    <input type="datetime-local" name="site_created_at" value="{{ formatInputTime .Setting.SiteCreatedAt }}">
+  </label>
+  <label>公告
+    <textarea name="announcement" rows="3">{{ .Setting.Announcement }}</textarea>
+  </label>
+  <label>作者介绍
+    <textarea name="author_intro" rows="3">{{ .Setting.AuthorIntro }}</textarea>
+  </label>
+  <label>壁纸 API
+    <input name="wallpaper_api" value="{{ .Setting.WallpaperAPI }}">
+  </label>
+  <label>自定义壁纸 URL
+    <input name="custom_wallpaper" value="{{ .Setting.CustomWallpaper }}">
+  </label>
+  <label class="check">
+    <input type="checkbox" name="enable_wallpaper" {{ if .Setting.EnableWallpaper }}checked{{ end }}> 启用随机壁纸背景
+  </label>
+  <label>默认文章封面
+    <input name="default_cover" value="{{ .Setting.DefaultCover }}">
+  </label>
+  <label>ICP 信息
+    <input name="icp_info" value="{{ .Setting.ICPInfo }}">
+  </label>
+  <button type="submit" class="btn primary" style="align-self:flex-start">💾 保存设置</button>
+</form>
+
+{{ template "admin_shell_close" . }}
+{{ end }}
