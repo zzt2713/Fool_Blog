@@ -20,8 +20,17 @@
   <label>建站时间
     <input type="datetime-local" name="site_created_at" value="{{ formatInputTime .Setting.SiteCreatedAt }}">
   </label>
-  <label>公告
-    <textarea name="announcement" rows="3">{{ .Setting.Announcement }}</textarea>
+  <label>公告文字
+    <textarea name="announcement" rows="3" placeholder="纯文本公告内容">{{ .Setting.Announcement }}</textarea>
+  </label>
+  <label>公告文章
+    <select name="announcement_article_id">
+      <option value="">不关联文章</option>
+      {{ range .Articles }}
+      <option value="{{ .ID }}" {{ if $.Setting.AnnouncementArticleID }}{{ if eq .ID $.Setting.AnnouncementArticleID.ID }}selected{{ end }}{{ end }}>{{ .Title }}</option>
+      {{ end }}
+    </select>
+    <span style="font-size:12px;color:var(--text-secondary);margin-top:4px">选择一篇文章，在首页公告区域显示链接</span>
   </label>
   <label>作者介绍
     <textarea name="author_intro" rows="3">{{ .Setting.AuthorIntro }}</textarea>

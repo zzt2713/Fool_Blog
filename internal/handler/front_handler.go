@@ -41,7 +41,13 @@ func (h *Handler) Index() gin.HandlerFunc {
 		var tags []model.Tag
 		h.DB.Order("name").Find(&tags)
 
-		c.HTML(http.StatusOK, "index", h.viewData(c, gin.H{
+		site := h.loadSite()
+		var announcementArticle *model.Article
+		if site.AnnouncementArticleID != nil {
+			h.DB.Where("id = ? AND status = ?", *site.AnnouncementArticleID, model.ArticleStatusPublished).First(&announcementArticle)
+		}
+
+		data := h.viewData(c, gin.H{
 			"Title":       "首页",
 			"TopArticles": topArticles,
 			"Articles":    articles,
@@ -51,7 +57,9 @@ func (h *Handler) Index() gin.HandlerFunc {
 			"Total":       total,
 			"HasNext":     int64(page*pageSize) < total,
 			"HasPrev":     page > 1,
-		}))
+		})
+		data["AnnouncementArticle"] = announcementArticle
+		c.HTML(http.StatusOK, "index", data)
 	}
 }
 

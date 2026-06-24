@@ -213,10 +213,13 @@ func (h *Handler) AdminUserDelete() gin.HandlerFunc {
 func (h *Handler) AdminSite() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		site := h.loadSite()
+		var articles []model.Article
+		h.DB.Where("status = ?", model.ArticleStatusPublished).Order("title").Select("id", "title").Find(&articles)
 		c.HTML(http.StatusOK, "admin_site", h.adminView(c, gin.H{
-			"Title":   "站点设置",
-			"Setting": site,
-			"Saved":   c.Query("ok") == "1",
+			"Title":    "站点设置",
+			"Setting":  site,
+			"Articles": articles,
+			"Saved":    c.Query("ok") == "1",
 		}))
 	}
 }
@@ -236,6 +239,16 @@ func (h *Handler) AdminSiteUpdate() gin.HandlerFunc {
 		site.EnableWallpaper = c.PostForm("enable_wallpaper") == "on"
 		site.DefaultCover = c.PostForm("default_cover")
 		site.ICPInfo = c.PostForm("icp_info")
+		if articleID := c.PostForm("announcement_article_id"); articleID != "" {
+			if id, err := strconv.Atoi(articleID); err == nil && id > 0 {
+				uid := uint(id)
+				site.AnnouncementArticleID = &uid
+			} else {
+				site.AnnouncementArticleID = nil
+			}
+		} else {
+			site.AnnouncementArticleID = nil
+		}
 		if value := strings.TrimSpace(c.PostForm("site_created_at")); value != "" {
 			if t, err := time.ParseInLocation("2006-01-02T15:04", value, time.Local); err == nil {
 				site.SiteCreatedAt = &t
