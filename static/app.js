@@ -108,12 +108,29 @@ document.addEventListener('DOMContentLoaded', function() {
   var wpApi = (typeof WALLPAPER_CONFIG !== 'undefined' && WALLPAPER_CONFIG.api) ? WALLPAPER_CONFIG.api : '';
   var wpEnabled = (typeof WALLPAPER_CONFIG !== 'undefined') ? WALLPAPER_CONFIG.enabled : false;
 
-  // 首次访问自动加载随机壁纸
+  // 判断是否为直接图片链接
+  function isDirectImage(url) {
+    return /\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$/i.test(url);
+  }
+
+  // 加载壁纸（支持 API 和直接链接）
+  function loadWallpaper(source) {
+    if (isDirectImage(source)) {
+      // 直接图片链接
+      localStorage.setItem('wallpaper', source);
+      applyWallpaper(source);
+      return Promise.resolve(source);
+    } else {
+      // API 接口
+      return fetch(source)
+        .then(function(r) { var u = r.url; return r.blob().then(function(){ return u; }); })
+        .then(function(url) { localStorage.setItem('wallpaper', url); applyWallpaper(url); return url; });
+    }
+  }
+
+  // 首次访问自动加载壁纸
   if (wpEnabled && wpApi && !localStorage.getItem('wallpaper')) {
-    fetch(wpApi)
-      .then(function(r) { var u = r.url; return r.blob().then(function(){ return u; }); })
-      .then(function(url) { localStorage.setItem('wallpaper', url); applyWallpaper(url); })
-      .catch(function(){});
+    loadWallpaper(wpApi).catch(function(){});
   }
 
   // 换壁纸
@@ -122,22 +139,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!wpEnabled || !wpApi) {
       wpBtn.style.display = 'none';
     } else {
-      wpBtn.addEventListener('click', function() {
-        wpBtn.querySelector('i').className = 'fa fa-spinner fa-spin';
-        fetch(wpApi)
-          .then(function(r) {
-            var u = r.url;
-            return r.blob().then(function() { return u; });
-          })
-          .then(function(url) {
-            localStorage.setItem('wallpaper', url);
-            applyWallpaper(url);
-            wpBtn.querySelector('i').className = 'fa fa-picture-o';
-          })
-          .catch(function() {
-            wpBtn.querySelector('i').className = 'fa fa-picture-o';
-          });
-      });
+      // 自定义 URL 不显示换壁纸按钮（固定图片）
+      if (isDirectImage(wpApi)) {
+        wpBtn.style.display = 'none';
+      } else {
+        wpBtn.addEventListener('click', function() {
+          wpBtn.querySelector('i').className = 'fa fa-spinner fa-spin';
+          loadWallpaper(wpApi)
+            .then(function() { wpBtn.querySelector('i').className = 'fa fa-picture-o'; })
+            .catch(function() { wpBtn.querySelector('i').className = 'fa fa-picture-o'; });
+        });
+      }
     }
   }
 
